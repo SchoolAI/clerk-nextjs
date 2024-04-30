@@ -36,7 +36,7 @@ export const createDebugLogger =
         );
 
         // biome-ignore lint/suspicious/noConsoleLog: <explanation>
-        console.log(`@clerk/nextjs ${name}`, output);
+        console.log(`@clerk/nextjs ${name}`, JSON.stringify(output));
       },
     };
   };
