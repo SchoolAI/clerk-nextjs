@@ -1,10 +1,4 @@
-import {
-  AuthStatus,
-  constants,
-  decodeJwt,
-  signedInAuthObject,
-  signedOutAuthObject
-} from "@clerk/backend";
+import { AuthStatus, constants, decodeJwt, signedInAuthObject, signedOutAuthObject } from "@clerk/backend";
 import { deprecatedObjectProperty } from "@clerk/shared/deprecated";
 import { withLogger } from "../utils/debugLogger";
 import { API_KEY, API_URL, API_VERSION, SECRET_KEY } from "./clerkClient";
@@ -63,11 +57,7 @@ const createGetAuth = ({
     });
     if (signedIn) {
       if (signedIn.user) {
-        deprecatedObjectProperty(
-          signedIn,
-          "user",
-          "Use `clerkClient.users.getUser` instead."
-        );
+        deprecatedObjectProperty(signedIn, "user", "Use `clerkClient.users.getUser` instead.");
       }
       if (signedIn.organization) {
         deprecatedObjectProperty(
@@ -77,11 +67,7 @@ const createGetAuth = ({
         );
       }
       if (signedIn.session) {
-        deprecatedObjectProperty(
-          signedIn,
-          "session",
-          "Use `clerkClient.sessions.getSession` instead."
-        );
+        deprecatedObjectProperty(signedIn, "session", "Use `clerkClient.sessions.getSession` instead.");
       }
     }
     return signedIn;

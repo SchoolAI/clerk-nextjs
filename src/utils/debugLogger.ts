@@ -1,6 +1,5 @@
 // TODO: Replace with a more sophisticated logging solution
 
-
 import { logFormatter } from './logFormatter';
 
 export type Log = string | Record<string, unknown>;
@@ -11,33 +10,36 @@ export type Logger<L = Log> = {
   enable: () => void;
 };
 
-export const createDebugLogger = (name: string, formatter: (val: LogEntry, i: number) => Record<string, unknown>[]) => (): Logger => {
-  const entries: LogEntry[] = [];
-  let isEnabled = false;
+export const createDebugLogger =
+  (name: string, formatter: (val: LogEntry, i: number) => Record<string, unknown>[]) => (): Logger => {
+    const entries: LogEntry[] = [];
+    let isEnabled = false;
 
-  return {
-    enable: () => {
-      isEnabled = true;
-    },
-    debug: (...args) => {
-      if (isEnabled) {
-        entries.push(args.map(arg => (typeof arg === 'function' ? arg() : arg)));
-      }
-    },
-    commit: () => {
-      if (!isEnabled) return
+    return {
+      enable: () => {
+        isEnabled = true;
+      },
+      debug: (...args) => {
+        if (isEnabled) {
+          entries.push(args.map(arg => (typeof arg === 'function' ? arg() : arg)));
+        }
+      },
+      commit: () => {
+        if (!isEnabled) return;
 
-      const objects = entries.flatMap((entry, i) => formatter(entry, i))
-      const output = Object.fromEntries(objects.map(obj => {
-        const { logKey, ...rest } = obj;
-        return [logKey, rest];
-      }));
+        const objects = entries.flatMap((entry, i) => formatter(entry, i));
+        const output = Object.fromEntries(
+          objects.map(obj => {
+            const { logKey, ...rest } = obj;
+            return [logKey, rest];
+          }),
+        );
 
-      // biome-ignore lint/suspicious/noConsoleLog: <explanation>
-      console.log(`@clerk/nextjs ${name}`, output);
-    },
+        // biome-ignore lint/suspicious/noConsoleLog: <explanation>
+        console.log(`@clerk/nextjs ${name}`, output);
+      },
+    };
   };
-};
 
 type WithLogger = <L extends Logger, H extends (...args: any[]) => any>(
   loggerFactoryOrName: string | (() => L),

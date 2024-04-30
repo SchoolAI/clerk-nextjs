@@ -156,17 +156,19 @@ const authMiddleware: AuthMiddleware = (...args: unknown[]) => {
     }
     const req = withNormalizedClerkUrl(_req);
 
-    logger.debug('URL debug', {
+    logger.debug({
+      logKey: 'url',
       url: req.nextUrl.href,
       method: req.method,
       headers: stringifyHeaders(req.headers),
       nextUrl: req.nextUrl.href,
       clerkUrl: req.experimental_clerkUrl.href,
+      beforeAuth: !!beforeAuth,
+      afterAuth: !!afterAuth,
     });
-    logger.debug('Options debug', { ...options, beforeAuth: !!beforeAuth, afterAuth: !!afterAuth });
 
     if (isIgnoredRoute(req)) {
-      logger.debug({ isIgnoredRoute: true });
+      logger.debug({ logKey: 'isIgnoredRoute', isIgnoredRoute: true });
       if (isDevelopmentFromApiKey(options.secretKey || SECRET_KEY) && !params.ignoredRoutes) {
         console.warn(
           receivedRequestForIgnoredRoute(req.experimental_clerkUrl.href, JSON.stringify(DEFAULT_CONFIG_MATCHER)),
@@ -178,22 +180,29 @@ const authMiddleware: AuthMiddleware = (...args: unknown[]) => {
     const beforeAuthRes = await (beforeAuth && beforeAuth(req, evt));
 
     if (beforeAuthRes === false) {
-      logger.debug('Before auth returned false, skipping');
+      logger.debug({
+        logKey: 'beforeAuth',
+        content: 'Before auth returned false, skipping',
+      });
       return setHeader(NextResponse.next(), constants.Headers.AuthReason, 'skip');
     } else if (beforeAuthRes && isRedirect(beforeAuthRes)) {
-      logger.debug('Before auth returned redirect, following redirect');
+      logger.debug({ logKey: 'beforeAuth', content: 'Before auth returned redirect, following redirect' });
       return setHeader(beforeAuthRes, constants.Headers.AuthReason, 'redirect');
     }
 
     const requestState = await authenticateRequest(req, options);
     if (requestState.isUnknown) {
-      logger.debug('authenticateRequest state is unknown', requestState);
+      logger.debug({ logKey: 'requestState', content: 'authenticateRequest state is unknown', requestState });
       return handleUnknownState(requestState);
     } else if (requestState.isInterstitial && isApiRoute(req)) {
-      logger.debug('authenticateRequest state is interstitial in an API route', requestState);
+      logger.debug({
+        logKey: 'requestState',
+        content: 'authenticateRequest state is interstitial in an API route',
+        requestState,
+      });
       return handleUnknownState(requestState);
     } else if (requestState.isInterstitial) {
-      logger.debug('authenticateRequest state is interstitial', requestState);
+      logger.debug({ logKey: 'requestState', content: 'authenticateRequest state is interstitial', requestState });
 
       assertClockSkew(requestState, options);
 
@@ -205,20 +214,25 @@ const authMiddleware: AuthMiddleware = (...args: unknown[]) => {
       isPublicRoute: isPublicRoute(req),
       isApiRoute: isApiRoute(req),
     });
-    logger.debug(() => ({ auth: JSON.stringify(auth), debug: auth.debug() }));
+    logger.debug(() => ({ logKey: 'auth', auth: JSON.stringify(auth), debug: auth.debug() }));
     const afterAuthRes = await (afterAuth || defaultAfterAuth)(auth, req, evt);
     const finalRes = mergeResponses(beforeAuthRes, afterAuthRes) || NextResponse.next();
-    logger.debug(() => ({ mergedHeaders: stringifyHeaders(finalRes.headers) }));
+    logger.debug(() => ({
+      logKey: 'afterAuth',
+      mergedHeaders: stringifyHeaders(finalRes.headers),
+    }));
 
     if (isRedirect(finalRes)) {
-      logger.debug('Final response is redirect, following redirect');
+      logger.debug({ logKey: 'isRedirect', content: 'Final response is redirect, following redirect' });
       const res = setHeader(finalRes, constants.Headers.AuthReason, 'redirect');
       return appendDevBrowserOnCrossOrigin(req, res, options);
     }
 
     if (options.debug) {
-      setRequestHeadersOnNextResponse(finalRes, req, { [constants.Headers.EnableDebug]: 'true' });
-      logger.debug(`Added ${constants.Headers.EnableDebug} on request`);
+      setRequestHeadersOnNextResponse(finalRes, req, {
+        [constants.Headers.EnableDebug]: 'true',
+      });
+      logger.debug({ logKey: 'setRequestHeaders', content: `Added ${constants.Headers.EnableDebug} on request` });
     }
 
     return decorateRequest(req, finalRes, requestState);

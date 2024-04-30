@@ -51,16 +51,18 @@ const authMiddleware = (...args) => {
       logger.enable();
     }
     const req = withNormalizedClerkUrl(_req);
-    logger.debug("URL debug", {
+    logger.debug({
+      logKey: "url",
       url: req.nextUrl.href,
       method: req.method,
       headers: (0, import_utils.stringifyHeaders)(req.headers),
       nextUrl: req.nextUrl.href,
-      clerkUrl: req.experimental_clerkUrl.href
+      clerkUrl: req.experimental_clerkUrl.href,
+      beforeAuth: !!beforeAuth,
+      afterAuth: !!afterAuth
     });
-    logger.debug("Options debug", { ...options, beforeAuth: !!beforeAuth, afterAuth: !!afterAuth });
     if (isIgnoredRoute(req)) {
-      logger.debug({ isIgnoredRoute: true });
+      logger.debug({ logKey: "isIgnoredRoute", isIgnoredRoute: true });
       if ((0, import_utils2.isDevelopmentFromApiKey)(options.secretKey || import_clerkClient.SECRET_KEY) && !params.ignoredRoutes) {
         console.warn(
           (0, import_errors.receivedRequestForIgnoredRoute)(req.experimental_clerkUrl.href, JSON.stringify(DEFAULT_CONFIG_MATCHER))
@@ -70,21 +72,28 @@ const authMiddleware = (...args) => {
     }
     const beforeAuthRes = await (beforeAuth && beforeAuth(req, evt));
     if (beforeAuthRes === false) {
-      logger.debug("Before auth returned false, skipping");
+      logger.debug({
+        logKey: "beforeAuth",
+        content: "Before auth returned false, skipping"
+      });
       return (0, import_utils.setHeader)(import_server.NextResponse.next(), import_backend.constants.Headers.AuthReason, "skip");
     } else if (beforeAuthRes && (0, import_utils.isRedirect)(beforeAuthRes)) {
-      logger.debug("Before auth returned redirect, following redirect");
+      logger.debug({ logKey: "beforeAuth", content: "Before auth returned redirect, following redirect" });
       return (0, import_utils.setHeader)(beforeAuthRes, import_backend.constants.Headers.AuthReason, "redirect");
     }
     const requestState = await (0, import_authenticateRequest.authenticateRequest)(req, options);
     if (requestState.isUnknown) {
-      logger.debug("authenticateRequest state is unknown", requestState);
+      logger.debug({ logKey: "requestState", content: "authenticateRequest state is unknown", requestState });
       return (0, import_authenticateRequest.handleUnknownState)(requestState);
     } else if (requestState.isInterstitial && isApiRoute(req)) {
-      logger.debug("authenticateRequest state is interstitial in an API route", requestState);
+      logger.debug({
+        logKey: "requestState",
+        content: "authenticateRequest state is interstitial in an API route",
+        requestState
+      });
       return (0, import_authenticateRequest.handleUnknownState)(requestState);
     } else if (requestState.isInterstitial) {
-      logger.debug("authenticateRequest state is interstitial", requestState);
+      logger.debug({ logKey: "requestState", content: "authenticateRequest state is interstitial", requestState });
       assertClockSkew(requestState, options);
       const res = (0, import_authenticateRequest.handleInterstitialState)(requestState, options);
       return assertInfiniteRedirectionLoop(req, res, options, requestState);
@@ -93,18 +102,23 @@ const authMiddleware = (...args) => {
       isPublicRoute: isPublicRoute(req),
       isApiRoute: isApiRoute(req)
     });
-    logger.debug(() => ({ auth: JSON.stringify(auth), debug: auth.debug() }));
+    logger.debug(() => ({ logKey: "auth", auth: JSON.stringify(auth), debug: auth.debug() }));
     const afterAuthRes = await (afterAuth || defaultAfterAuth)(auth, req, evt);
     const finalRes = (0, import_utils.mergeResponses)(beforeAuthRes, afterAuthRes) || import_server.NextResponse.next();
-    logger.debug(() => ({ mergedHeaders: (0, import_utils.stringifyHeaders)(finalRes.headers) }));
+    logger.debug(() => ({
+      logKey: "afterAuth",
+      mergedHeaders: (0, import_utils.stringifyHeaders)(finalRes.headers)
+    }));
     if ((0, import_utils.isRedirect)(finalRes)) {
-      logger.debug("Final response is redirect, following redirect");
+      logger.debug({ logKey: "isRedirect", content: "Final response is redirect, following redirect" });
       const res = (0, import_utils.setHeader)(finalRes, import_backend.constants.Headers.AuthReason, "redirect");
       return appendDevBrowserOnCrossOrigin(req, res, options);
     }
     if (options.debug) {
-      (0, import_utils2.setRequestHeadersOnNextResponse)(finalRes, req, { [import_backend.constants.Headers.EnableDebug]: "true" });
-      logger.debug(`Added ${import_backend.constants.Headers.EnableDebug} on request`);
+      (0, import_utils2.setRequestHeadersOnNextResponse)(finalRes, req, {
+        [import_backend.constants.Headers.EnableDebug]: "true"
+      });
+      logger.debug({ logKey: "setRequestHeaders", content: `Added ${import_backend.constants.Headers.EnableDebug} on request` });
     }
     return (0, import_utils2.decorateRequest)(req, finalRes, requestState);
   });

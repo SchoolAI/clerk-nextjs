@@ -39,10 +39,12 @@ const createDebugLogger = (name, formatter) => () => {
       if (!isEnabled)
         return;
       const objects = entries.flatMap((entry, i) => formatter(entry, i));
-      const output = Object.fromEntries(objects.map((obj) => {
-        const { logKey, ...rest } = obj;
-        return [logKey, rest];
-      }));
+      const output = Object.fromEntries(
+        objects.map((obj) => {
+          const { logKey, ...rest } = obj;
+          return [logKey, rest];
+        })
+      );
       console.log(`@clerk/nextjs ${name}`, output);
     }
   };

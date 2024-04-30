@@ -14,17 +14,16 @@ const maskSecretKey = (str: any) => {
 };
 
 export const logFormatter = (entry: LogEntry, i: number) => {
-  return (Array.isArray(entry) ? entry : [entry])
-    .map(entry => {
-      if (typeof entry === 'string') {
-        return { logKey: i, content: maskSecretKey(entry) };
-      }
+  return (Array.isArray(entry) ? entry : [entry]).map(entry => {
+    if (typeof entry === 'string') {
+      return { logKey: i, content: maskSecretKey(entry) };
+    }
 
-      const entries = Object.fromEntries(Object.entries(entry).map(([k, v]) => [k, maskSecretKey(v)]));
-      if (!('logKey' in entries)) {
-        entries.logKey = i
-      }
+    const entries = Object.fromEntries(Object.entries(entry).map(([k, v]) => [k, maskSecretKey(v)]));
+    if (!('logKey' in entries)) {
+      entries.logKey = i;
+    }
 
-      return entries
-    })
+    return entries;
+  });
 };

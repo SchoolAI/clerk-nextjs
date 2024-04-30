@@ -82,11 +82,7 @@ const createGetAuth = ({
     });
     if (signedIn) {
       if (signedIn.user) {
-        (0, import_deprecated.deprecatedObjectProperty)(
-          signedIn,
-          "user",
-          "Use `clerkClient.users.getUser` instead."
-        );
+        (0, import_deprecated.deprecatedObjectProperty)(signedIn, "user", "Use `clerkClient.users.getUser` instead.");
       }
       if (signedIn.organization) {
         (0, import_deprecated.deprecatedObjectProperty)(
@@ -96,11 +92,7 @@ const createGetAuth = ({
         );
       }
       if (signedIn.session) {
-        (0, import_deprecated.deprecatedObjectProperty)(
-          signedIn,
-          "session",
-          "Use `clerkClient.sessions.getSession` instead."
-        );
+        (0, import_deprecated.deprecatedObjectProperty)(signedIn, "session", "Use `clerkClient.sessions.getSession` instead.");
       }
     }
     return signedIn;
