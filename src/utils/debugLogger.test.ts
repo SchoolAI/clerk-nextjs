@@ -13,7 +13,7 @@ describe('withLogger', () => {
     };
   });
 
-  it('should return the type of the passed handler', function () {
+  it('should return the type of the passed handler', () => {
     type Options = { name: string; test: number };
     const handler = withLogger(
       () => logger,
@@ -26,7 +26,7 @@ describe('withLogger', () => {
     expectTypeOf(handler).toMatchTypeOf<(opts: Options) => string>();
   });
 
-  it('should log upon return of a sync function', function () {
+  it('should log upon return of a sync function', () => {
     const handler = withLogger(
       () => logger,
       logger => () => {
@@ -44,7 +44,7 @@ describe('withLogger', () => {
     expect(logger.commit).toHaveBeenCalled();
   });
 
-  it('should log before an error is thrown inside of a sync function', function () {
+  it('should log before an error is thrown inside of a sync function', () => {
     const handler = withLogger(
       () => logger,
       logger => () => {
@@ -66,7 +66,7 @@ describe('withLogger', () => {
     }
   });
 
-  it('should log upon return of a async function', async function () {
+  it('should log upon return of a async function', async () => {
     const handler = withLogger(
       () => logger,
       logger => async () => {
@@ -87,7 +87,7 @@ describe('withLogger', () => {
     expect(logger.commit).toHaveBeenCalled();
   });
 
-  it('should log before an error is thrown inside of an async function', async function () {
+  it('should log before an error is thrown inside of an async function', async () => {
     const handler = withLogger(
       () => logger,
       logger => async () => {
@@ -128,6 +128,7 @@ describe('withLogger', () => {
     handler();
 
     for (const mockCall of log.mock.calls) {
+      console.info('~~mockCall', mockCall[0]);
       expect(mockCall[0].length).toBeLessThanOrEqual(4096);
     }
 

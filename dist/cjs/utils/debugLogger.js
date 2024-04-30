@@ -45,7 +45,7 @@ const createDebugLogger = (name, formatter) => () => {
           return [logKey, rest];
         })
       );
-      console.log(`@clerk/nextjs ${name}`, output);
+      console.log(JSON.stringify({ _logger: `@clerk/nextjs ${name}`, ...output }));
     }
   };
 };

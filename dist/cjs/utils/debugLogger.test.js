@@ -10,7 +10,7 @@ describe("withLogger", () => {
       commit: jest.fn()
     };
   });
-  it("should return the type of the passed handler", function() {
+  it("should return the type of the passed handler", () => {
     const handler = (0, import_debugLogger.withLogger)(
       () => logger,
       (logger2) => (opts) => {
@@ -20,7 +20,7 @@ describe("withLogger", () => {
     );
     (0, import_expect_type.expectTypeOf)(handler).toMatchTypeOf();
   });
-  it("should log upon return of a sync function", function() {
+  it("should log upon return of a sync function", () => {
     const handler = (0, import_debugLogger.withLogger)(
       () => logger,
       (logger2) => () => {
@@ -37,7 +37,7 @@ describe("withLogger", () => {
     expect(logger.log).toHaveBeenCalled();
     expect(logger.commit).toHaveBeenCalled();
   });
-  it("should log before an error is thrown inside of a sync function", function() {
+  it("should log before an error is thrown inside of a sync function", () => {
     const handler = (0, import_debugLogger.withLogger)(
       () => logger,
       (logger2) => () => {
@@ -58,7 +58,7 @@ describe("withLogger", () => {
       expect(logger.commit).toHaveBeenCalled();
     }
   });
-  it("should log upon return of a async function", async function() {
+  it("should log upon return of a async function", async () => {
     const handler = (0, import_debugLogger.withLogger)(
       () => logger,
       (logger2) => async () => {
@@ -78,7 +78,7 @@ describe("withLogger", () => {
     expect(logger.log).toHaveBeenCalled();
     expect(logger.commit).toHaveBeenCalled();
   });
-  it("should log before an error is thrown inside of an async function", async function() {
+  it("should log before an error is thrown inside of an async function", async () => {
     const handler = (0, import_debugLogger.withLogger)(
       () => logger,
       (logger2) => async () => {
@@ -115,6 +115,7 @@ describe("withLogger", () => {
     });
     handler();
     for (const mockCall of log.mock.calls) {
+      console.info("~~mockCall", mockCall[0]);
       expect(mockCall[0].length).toBeLessThanOrEqual(4096);
     }
     process.env.VERCEL = void 0;

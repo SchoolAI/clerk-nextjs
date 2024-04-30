@@ -35,8 +35,8 @@ export const createDebugLogger =
           }),
         );
 
-        // biome-ignore lint/suspicious/noConsoleLog: <explanation>
-        console.log(`@clerk/nextjs ${name}`, JSON.stringify(output));
+        // biome-ignore lint/suspicious/noConsoleLog: this is the main logging facility
+        console.log(JSON.stringify({ _logger: `@clerk/nextjs ${name}`, ...output }));
       },
     };
   };
