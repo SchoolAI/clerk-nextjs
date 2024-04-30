@@ -41,7 +41,8 @@ const createGetAuth = ({
     const authStatus = (0, import_utils.getAuthKeyFromRequest)(req, "AuthStatus");
     const authMessage = (0, import_utils.getAuthKeyFromRequest)(req, "AuthMessage");
     const authReason = (0, import_utils.getAuthKeyFromRequest)(req, "AuthReason");
-    logger.debug("Debug", {
+    logger.debug({
+      logKey: "authKeys",
       authReason,
       authMessage,
       authStatus,
@@ -60,20 +61,32 @@ const createGetAuth = ({
       apiUrl: import_clerkClient.API_URL,
       apiVersion: import_clerkClient.API_VERSION
     };
-    logger.debug("Options debug", options);
+    logger.debug({ logKey: "options", ...options });
     if (authStatus !== import_backend.AuthStatus.SignedIn) {
       return (0, import_backend.signedOutAuthObject)(options);
     }
     const jwt = (0, import_backend.decodeJwt)(authToken);
-    logger.debug("JWT debug", jwt.raw.text);
+    logger.debug({ logKey: "jwt", content: jwt.raw.text });
     const signedIn = (0, import_backend.signedInAuthObject)(jwt.payload, {
       ...options,
       token: jwt.raw.text
     });
-    logger.debug("Signed in", signedIn);
+    logger.debug({
+      logKey: "signedIn",
+      ...signedIn.sessionClaims,
+      sessionId: signedIn.sessionId,
+      userId: signedIn.userId,
+      issuedAt: new Date(signedIn.sessionClaims.iat * 1e3).toISOString(),
+      expiresAt: new Date(signedIn.sessionClaims.exp * 1e3).toISOString(),
+      notBefore: new Date(signedIn.sessionClaims.nbf * 1e3).toISOString()
+    });
     if (signedIn) {
       if (signedIn.user) {
-        (0, import_deprecated.deprecatedObjectProperty)(signedIn, "user", "Use `clerkClient.users.getUser` instead.");
+        (0, import_deprecated.deprecatedObjectProperty)(
+          signedIn,
+          "user",
+          "Use `clerkClient.users.getUser` instead."
+        );
       }
       if (signedIn.organization) {
         (0, import_deprecated.deprecatedObjectProperty)(
@@ -83,7 +96,11 @@ const createGetAuth = ({
         );
       }
       if (signedIn.session) {
-        (0, import_deprecated.deprecatedObjectProperty)(signedIn, "session", "Use `clerkClient.sessions.getSession` instead.");
+        (0, import_deprecated.deprecatedObjectProperty)(
+          signedIn,
+          "session",
+          "Use `clerkClient.sessions.getSession` instead."
+        );
       }
     }
     return signedIn;

@@ -5,7 +5,7 @@ export type Logger<L = Log> = {
     debug: (...args: Array<L | (() => L)>) => void;
     enable: () => void;
 };
-export declare const createDebugLogger: (name: string, formatter: (val: LogEntry) => string) => () => Logger;
+export declare const createDebugLogger: (name: string, formatter: (val: LogEntry, i: number) => Record<string, unknown>[]) => () => Logger;
 type WithLogger = <L extends Logger, H extends (...args: any[]) => any>(loggerFactoryOrName: string | (() => L), handlerCtor: (logger: Omit<L, 'commit'>) => H) => H;
 export declare const withLogger: WithLogger;
 export {};

@@ -1,4 +1,10 @@
-import { AuthStatus, constants, decodeJwt, signedInAuthObject, signedOutAuthObject } from "@clerk/backend";
+import {
+  AuthStatus,
+  constants,
+  decodeJwt,
+  signedInAuthObject,
+  signedOutAuthObject
+} from "@clerk/backend";
 import { deprecatedObjectProperty } from "@clerk/shared/deprecated";
 import { withLogger } from "../utils/debugLogger";
 import { API_KEY, API_URL, API_VERSION, SECRET_KEY } from "./clerkClient";
@@ -16,7 +22,8 @@ const createGetAuth = ({
     const authStatus = getAuthKeyFromRequest(req, "AuthStatus");
     const authMessage = getAuthKeyFromRequest(req, "AuthMessage");
     const authReason = getAuthKeyFromRequest(req, "AuthReason");
-    logger.debug("Debug", {
+    logger.debug({
+      logKey: "authKeys",
       authReason,
       authMessage,
       authStatus,
@@ -35,20 +42,32 @@ const createGetAuth = ({
       apiUrl: API_URL,
       apiVersion: API_VERSION
     };
-    logger.debug("Options debug", options);
+    logger.debug({ logKey: "options", ...options });
     if (authStatus !== AuthStatus.SignedIn) {
       return signedOutAuthObject(options);
     }
     const jwt = decodeJwt(authToken);
-    logger.debug("JWT debug", jwt.raw.text);
+    logger.debug({ logKey: "jwt", content: jwt.raw.text });
     const signedIn = signedInAuthObject(jwt.payload, {
       ...options,
       token: jwt.raw.text
     });
-    logger.debug("Signed in", signedIn);
+    logger.debug({
+      logKey: "signedIn",
+      ...signedIn.sessionClaims,
+      sessionId: signedIn.sessionId,
+      userId: signedIn.userId,
+      issuedAt: new Date(signedIn.sessionClaims.iat * 1e3).toISOString(),
+      expiresAt: new Date(signedIn.sessionClaims.exp * 1e3).toISOString(),
+      notBefore: new Date(signedIn.sessionClaims.nbf * 1e3).toISOString()
+    });
     if (signedIn) {
       if (signedIn.user) {
-        deprecatedObjectProperty(signedIn, "user", "Use `clerkClient.users.getUser` instead.");
+        deprecatedObjectProperty(
+          signedIn,
+          "user",
+          "Use `clerkClient.users.getUser` instead."
+        );
       }
       if (signedIn.organization) {
         deprecatedObjectProperty(
@@ -58,7 +77,11 @@ const createGetAuth = ({
         );
       }
       if (signedIn.session) {
-        deprecatedObjectProperty(signedIn, "session", "Use `clerkClient.sessions.getSession` instead.");
+        deprecatedObjectProperty(
+          signedIn,
+          "session",
+          "Use `clerkClient.sessions.getSession` instead."
+        );
       }
     }
     return signedIn;

@@ -11,7 +11,7 @@ export type Logger<L = Log> = {
   enable: () => void;
 };
 
-export const createDebugLogger = (name: string, formatter: (val: LogEntry) => string) => (): Logger => {
+export const createDebugLogger = (name: string, formatter: (val: LogEntry, i: number) => Record<string, unknown>[]) => (): Logger => {
   const entries: LogEntry[] = [];
   let isEnabled = false;
 
@@ -27,8 +27,14 @@ export const createDebugLogger = (name: string, formatter: (val: LogEntry) => st
     commit: () => {
       if (!isEnabled) return
 
+      const objects = entries.flatMap((entry, i) => formatter(entry, i))
+      const output = Object.fromEntries(objects.map(obj => {
+        const { logKey, ...rest } = obj;
+        return [logKey, rest];
+      }));
+
       // biome-ignore lint/suspicious/noConsoleLog: <explanation>
-      console.log(`@clerk/nextjs ${name}`, entries.map(log => formatter(log)).join(", "))
+      console.log(`@clerk/nextjs ${name}`, output);
     },
   };
 };

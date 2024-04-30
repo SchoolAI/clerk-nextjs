@@ -31,14 +31,17 @@ const maskSecretKey = (str) => {
     return "";
   }
 };
-const logFormatter = (entry) => {
+const logFormatter = (entry, i) => {
   return (Array.isArray(entry) ? entry : [entry]).map((entry2) => {
     if (typeof entry2 === "string") {
-      return maskSecretKey(entry2);
+      return { logKey: i, content: maskSecretKey(entry2) };
     }
-    const masked = Object.fromEntries(Object.entries(entry2).map(([k, v]) => [k, maskSecretKey(v)]));
-    return JSON.stringify(masked, null, 2);
-  }).join(", ");
+    const entries = Object.fromEntries(Object.entries(entry2).map(([k, v]) => [k, maskSecretKey(v)]));
+    if (!("logKey" in entries)) {
+      entries.logKey = i;
+    }
+    return entries;
+  });
 };
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
