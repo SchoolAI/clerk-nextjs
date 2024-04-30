@@ -1,9 +1,7 @@
 "use strict";
-var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __export = (target, all) => {
   for (var name in all)
@@ -17,14 +15,6 @@ var __copyProps = (to, from, except, desc) => {
   }
   return to;
 };
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
-  // If the importer is in node compatibility mode or this is not an ESM
-  // file that has been converted to a CommonJS file using a Babel-
-  // compatible transform (i.e. "__esModule" has not been set), then set
-  // "default" to the CommonJS "module.exports" for node compatibility.
-  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
-  mod
-));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 var debugLogger_exports = {};
 __export(debugLogger_exports, {
@@ -32,7 +22,6 @@ __export(debugLogger_exports, {
   withLogger: () => withLogger
 });
 module.exports = __toCommonJS(debugLogger_exports);
-var import_package = __toESM(require("next/package.json"));
 var import_logFormatter = require("./logFormatter");
 const createDebugLogger = (name, formatter) => () => {
   const entries = [];
@@ -47,18 +36,9 @@ const createDebugLogger = (name, formatter) => () => {
       }
     },
     commit: () => {
-      if (isEnabled) {
-        console.log(debugLogHeader(name));
-        for (const log of entries) {
-          let output = formatter(log);
-          output = output.split("\n").map((l) => `  ${l}`).join("\n");
-          if (process.env.VERCEL) {
-            output = truncate(output, 4096);
-          }
-          console.log(output);
-        }
-        console.log(debugLogFooter(name));
-      }
+      if (!isEnabled)
+        return;
+      console.log(`@clerk/nextjs ${name}`, entries.map((log) => formatter(log)).join(", "));
     }
   };
 };
@@ -86,19 +66,6 @@ const withLogger = (loggerFactoryOrName, handlerCtor) => {
     }
   };
 };
-function debugLogHeader(name) {
-  return `[clerk debug start: ${name}]`;
-}
-function debugLogFooter(name) {
-  return `[clerk debug end: ${name}] (@clerk/nextjs=${"4.30.0"},next=${import_package.default.version})`;
-}
-function truncate(str, maxLength) {
-  const encoder = new TextEncoder();
-  const decoder = new TextDecoder("utf-8");
-  const encodedString = encoder.encode(str);
-  const truncatedString = encodedString.slice(0, maxLength);
-  return decoder.decode(truncatedString).replace(/\uFFFD/g, "");
-}
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   createDebugLogger,

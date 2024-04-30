@@ -1,6 +1,5 @@
 // TODO: Replace with a more sophisticated logging solution
 
-import nextPkg from 'next/package.json';
 
 import { logFormatter } from './logFormatter';
 
@@ -26,31 +25,10 @@ export const createDebugLogger = (name: string, formatter: (val: LogEntry) => st
       }
     },
     commit: () => {
-      if (isEnabled) {
-        console.log(debugLogHeader(name));
+      if (!isEnabled) return
 
-        /**
-         * We buffer each collected log entry so we can format them and log them all at once.
-         * Individual console.log calls are used to ensure we don't hit platform-specific log limits (Vercel and Netlify are 4kb).
-         */
-        for (const log of entries) {
-          let output = formatter(log);
-
-          output = output
-            .split('\n')
-            .map(l => `  ${l}`)
-            .join('\n');
-
-          // Vercel errors if the output is > 4kb, so we truncate it
-          if (process.env.VERCEL) {
-            output = truncate(output, 4096);
-          }
-
-          console.log(output);
-        }
-
-        console.log(debugLogFooter(name));
-      }
+      // biome-ignore lint/suspicious/noConsoleLog: <explanation>
+      console.log(`@clerk/nextjs ${name}`, entries.map(log => formatter(log)).join(", "))
     },
   };
 };
@@ -92,23 +70,3 @@ export const withLogger: WithLogger = (loggerFactoryOrName, handlerCtor) => {
     }
   }) as ReturnType<typeof handlerCtor>;
 };
-
-function debugLogHeader(name: string) {
-  return `[clerk debug start: ${name}]`;
-}
-
-function debugLogFooter(name: string) {
-  return `[clerk debug end: ${name}] (@clerk/nextjs=${PACKAGE_VERSION},next=${nextPkg.version})`;
-}
-
-// ref: https://stackoverflow.com/questions/57769465/javascript-truncate-text-by-bytes-length
-function truncate(str: string, maxLength: number) {
-  const encoder = new TextEncoder();
-  const decoder = new TextDecoder('utf-8');
-
-  const encodedString = encoder.encode(str);
-  const truncatedString = encodedString.slice(0, maxLength);
-
-  // return the truncated string, removing any replacement characters that result from partially truncated characters
-  return decoder.decode(truncatedString).replace(/\uFFFD/g, '');
-}

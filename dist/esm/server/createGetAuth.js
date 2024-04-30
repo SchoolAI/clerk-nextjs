@@ -45,6 +45,7 @@ const createGetAuth = ({
       ...options,
       token: jwt.raw.text
     });
+    logger.debug("Signed in", signedIn);
     if (signedIn) {
       if (signedIn.user) {
         deprecatedObjectProperty(signedIn, "user", "Use `clerkClient.users.getUser` instead.");
