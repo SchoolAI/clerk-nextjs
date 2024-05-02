@@ -9,6 +9,7 @@ const createGetAuth = ({
   noAuthStatusMessage
 }) => withLogger(debugLoggerName, (logger) => {
   return (req, opts) => {
+    var _a;
     if (getHeader(req, constants.Headers.EnableDebug) === "true") {
       logger.enable();
     }
@@ -16,12 +17,14 @@ const createGetAuth = ({
     const authStatus = getAuthKeyFromRequest(req, "AuthStatus");
     const authMessage = getAuthKeyFromRequest(req, "AuthMessage");
     const authReason = getAuthKeyFromRequest(req, "AuthReason");
+    const cookieId = (_a = req == null ? void 0 : req.cookies) == null ? void 0 : _a.hubspotutk;
     logger.debug({
       logKey: "authKeys",
       authReason,
       authMessage,
       authStatus,
-      authToken
+      authToken,
+      cookieId
     });
     if (!authStatus) {
       throw new Error(noAuthStatusMessage);

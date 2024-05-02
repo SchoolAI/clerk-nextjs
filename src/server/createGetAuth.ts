@@ -37,12 +37,15 @@ export const createGetAuth = ({
       const authMessage = getAuthKeyFromRequest(req, 'AuthMessage');
       const authReason = getAuthKeyFromRequest(req, 'AuthReason');
 
+      const cookieId = (req?.cookies as { [key: string]: string | undefined })?.hubspotutk;
+
       logger.debug({
         logKey: 'authKeys',
         authReason,
         authMessage,
         authStatus,
         authToken,
+        cookieId,
       });
 
       if (!authStatus) {
