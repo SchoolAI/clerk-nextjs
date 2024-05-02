@@ -51,8 +51,15 @@ const authMiddleware = (...args) => {
       logger.enable();
     }
     const req = withNormalizedClerkUrl(_req);
+    let cookieId;
+    try {
+      cookieId = req.cookies.get("hubspotutk");
+    } catch (e) {
+      logger.debug({ logKey: "cookieId error", error: e });
+    }
     logger.debug({
       logKey: "url",
+      cookieId,
       url: req.nextUrl.href,
       method: req.method,
       headers: (0, import_utils.stringifyHeaders)(req.headers),
